@@ -7,10 +7,7 @@ import functools
 import json
 import logging
 import os
-import random
 import websockets
-
-from enum import Enum
 
 from command import (Command, Option)
 from game import Game
@@ -74,12 +71,13 @@ async def process_request(sever_root, path, request_headers):
     return HTTPStatus.OK, response_headers, body
 
 
-async def notify(playerSockets):
-    if playerSockets:
-        await asyncio.wait([websocket.send(json.dumps(player, cls=DogEncoder)) for (player, websocket) in playerSockets])
+async def notify(player_sockets):
+    if player_sockets:
+        await asyncio.wait([websocket.send(json.dumps(player, cls=DogEncoder)) for (player, websocket) in player_sockets])
 
 
 async def handler(websocket, path):
+    player = None
     try:
         player = Player()
         player.options = [
@@ -88,12 +86,12 @@ async def handler(websocket, path):
         async for message in websocket:
             option = Option(**json.loads(message))
 
-            if not player.checkOption(option):
+            if not player.check_option(option):
                 await notify([(player, websocket)])
                 continue
 
             if option.command == Command.NEWGAME:
-                code = 3936 #random.randint(1000, 9999);
+                code = 3936  # random.randint(1000, 9999);
                 sockets[code] = [(player, websocket)]
                 player.message = f"De andere spelers kunnen meedoen door code {code} in te voeren"
                 player.options = []
@@ -148,20 +146,18 @@ async def handler(websocket, path):
 
             else:
                 game = games[code]
-                game.playOption(player, option)
+                game.play_option(player, option)
                 await notify(sockets[code])
-
-
     finally:
-        sockets[code].remove((player, websocket))
+        if player is not None:
+            sockets[code].remove((player, websocket))
         pass
 
 if __name__ == "__main__":
 
-    staticHandler = functools.partial(process_request, os.getcwd() + '\\ui')
+    static_handler = functools.partial(process_request, os.path.join(os.getcwd(), 'ui'))
 
-
-    start_server = websockets.serve(handler, "localhost", 6789, process_request=staticHandler)
+    start_server = websockets.serve(handler, "localhost", 6789, process_request=static_handler)
 
     print("Running server at http://127.0.0.1:6789/")
 
