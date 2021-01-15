@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Dog</title>
+        <style type="text/css">
+            body {
+                font-family: "Courier New", sans-serif;
+                text-align: center;
+                background-color: lightgray;
+            }
+            .buttons {
+                font-size: 3em;
+                display: flex;
+                justify-content: center;
+            }
+            .button {
+                line-height: 1;
+                padding: 2rem;
+                margin: 2rem;
+                border: medium solid;
+                min-height: 1em;
+                min-width: 1em;
+                cursor: pointer;
+                user-select: none;
+            }
+            .state, .name {
+                font-size: 3em;
+                padding: 1rem;
+            }
+            .name {
+                color: white;
+             }
+        </style>
+    </head>
+    <body>
+        <div class="name" id="name">You</div>
+        <div class="state">
+            <span class="message" id="msg">?</span>
+        </div>
+        <div class="buttons">
+            <div class="button" id="b0" onclick="doOption(0)">1</div>
+            <div class="button" id="b1" onclick="doOption(1)">2</div>
+            <div class="button" id="b2" onclick="doOption(2)">3</div>
+            <div class="button" id="b3" onclick="doOption(3)">4</div>
+            <div class="button" id="b4" onclick="doOption(4)">5</div>
+            <div class="button" id="b5" onclick="doOption(5)">6</div>
+        </div>
+        <script>
+            var player = { options: [
+              {
+                command: 'newgame',
+                args: null,
+                text: 'Nieuw spel'
+              },{
+                command: 'joingame',
+                args: [3936],
+                text: 'Doe mee'
+              }],
+              message: "Hallo"};
+
+            function doOption(i) {
+              if (player.options.length > i) {
+                websocket.send(JSON.stringify(player.options[i]));
+              }
+            }
+
+            function show() {
+              var i;
+              for (i = 0; i < 6; i++) {
+                document.getElementById("b" + i.toString()).textContent = player.options.length > i ? player.options[i].text : '';
+              }
+              document.getElementById("msg").textContent = player.message;
+              var name = document.getElementById("name");
+              name.textContent = player.name ?? 'You';
+              if (player.color) {
+                name.style.color = player.color; 
+              }
+            }
+            
+            websocket = new WebSocket("ws://127.0.0.1:6789/");
+
+            websocket.onmessage = function (event) {
+                player = JSON.parse(event.data);
+                show();
+            }
+            
+            show();
+        </script>
+    </body>
+</html>
