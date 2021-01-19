@@ -1,11 +1,10 @@
 import random
 from typing import List, Dict
 
-from command import Command, Option
-from player import Player, Color
-
-suits = ["Harten", "Schoppen", "Klaver", "Ruiten"]
-denoms = ["Aas", "Heer", "Vrouw", "Boer", "10", "9", "8", "7", "6", "5", "4", "3", "2"]
+from color import Color
+from cards import Card, shuffle
+from option import OptionCode, Option
+from player import Player, StateCode, ErrorCode
 
 
 class Game(object):
@@ -13,6 +12,7 @@ class Game(object):
 
     players: Dict[Color, Player]
     current_player: Player
+    current_dealer: Player
     stock: List[str]
     number_of_cards: int
 
@@ -31,26 +31,18 @@ class Game(object):
         self.players = dict((player.color, player) for player in players)
 
         for player in self.players.values():
-            player.options = [Option(Command.DEAL, None, "Delen")]
+            player.options = [Option(OptionCode.DEAL, "Delen")]
             player.message = "Wie begint er met delen?"
-
-    def shuffle(self):
-        deck = [x + " " + y for x in suits for y in denoms] + ["Joker" for _ in range(3)]
-        self.stock = deck * 2
-
-        for n in range(len(self.stock)):
-            x = random.randint(0, len(self.stock) - n)
-            value = self.stock[x]
-            self.stock[x] = self.stock[n]
-            self.stock[n] = value
+            player.set_state(StateCode.FIRST_DEAL)
 
     def deal(self, player_color):
         player = self.players[player_color]
 
         self.current_player = player
+        self.current_dealer = player
 
         if self.number_of_cards <= 2:
-            self.shuffle()
+            self.stock = shuffle(2)
             self.number_of_cards = 6
         else:
             self.number_of_cards -= 1
@@ -58,10 +50,12 @@ class Game(object):
         for player in self.players.values():
             player.hand = self.stock[:self.number_of_cards]
             self.stock = self.stock[self.number_of_cards:]
-            player.options = [Option(Command.CHANGECARD, [card], card) for card in player.hand]
+            player.options = [Option(OptionCode.SWAP_CARD, card.denom, card=card) for card in player.hand]
             player.message = "Kies een kaart om te wisselen"
+            player.set_state(StateCode.SWAP_CARD)
             player.selected_card = None
             player.card_is_changed = False
+            player.passed = False
 
         return self.players
 
@@ -69,20 +63,21 @@ class Game(object):
         player = self.players[player_color]
 
         player.hand.remove(card)
-        mate = self.mate(player)
+        partner = self.partner(player)
 
-        if mate.selected_card is None:
+        if partner.selected_card is None:
             player.selected_card = card
             player.message = "Wacht op je maat"
-            player.options = [Option(Command.UNDOCARD, None, "Terug")]
+            player.set_state(StateCode.SWAP_CARD_PARTNER)
+            player.options = [Option(OptionCode.UNDO_CARD, "Terug")]
             return self.players
 
-        player.hand.append(mate.selected_card)
-        mate.selected_card = None
-        mate.hand.append(card)
+        player.hand.append(partner.selected_card)
+        partner.selected_card = None
+        partner.hand.append(card)
         player.card_is_changed = True
-        mate.card_is_changed = True
-        mate.options.clear()
+        partner.card_is_changed = True
+        partner.options.clear()
         player.options.clear()
         player.message = ""
 
@@ -90,7 +85,9 @@ class Game(object):
             self.next_turn()
         else:
             player.message = "Wacht op het andere team"
-            mate.message = "wacht op het andere team"
+            player.set_state(StateCode.SWAP_CARD_OTHERS)
+            partner.message = "wacht op het andere team"
+            partner.set_state(StateCode.SWAP_CARD_OTHERS)
 
         return self.players
 
@@ -99,14 +96,24 @@ class Game(object):
 
         player.hand.remove(card)
         player.selected_card = card
-        player.options = [Option(Command.UNDOCARD, None, "Terug"), Option(Command.READY, None, "Klaar")]
+        player.options = [Option(OptionCode.UNDO_CARD, "Terug"), Option(OptionCode.READY, "Klaar")]
         player.message = f"Je speelt {card}"
+        player.set_state(StateCode.PLAYING_CARD, card=card)
 
         for other in self.players.values():
             if other.color != player.color:
                 other.message = f"{player.name} speelt {card}"
+                other.set_state(StateCode.PLAYING_CARD_OTHER, card=card, other_player_name=player.name)
 
         return self.players
+
+    def drop_cards(self, player_color):
+        player = self.players[player_color]
+
+        player.hand = []
+        player.options = []
+        player.passed = True
+        self.next_turn()
 
     def ready(self, player_color):
         player = self.players[player_color]
@@ -126,24 +133,27 @@ class Game(object):
         if player.card_is_changed:
             self.turn()
         else:
-            player.options = [Option(Command.CHANGECARD, [card], card) for card in player.hand]
+            player.options = [Option(OptionCode.SWAP_CARD, card.denom, card=card) for card in player.hand]
             player.message = "Kies een kaart om te wisselen"
+            player.set_state(StateCode.SWAP_CARD)
 
         return self.players
 
     def play_option(self, player, option):
-        if option.command == Command.DEAL:
+        if option.code == OptionCode.DEAL:
             return self.deal(player.color)
-        elif option.command == Command.CHANGECARD:
-            return self.change_card(player.color, option.args[0])
-        elif option.command == Command.PLAYCARD:
-            return self.play_card(player.color, option.args[0])
-        elif option.command == Command.READY:
+        elif option.code == OptionCode.SWAP_CARD:
+            return self.change_card(player.color, option.card)
+        elif option.code == OptionCode.PLAY_CARD:
+            return self.play_card(player.color, option.card)
+        elif option.code == OptionCode.READY:
             return self.ready(player.color)
-        elif option.command == Command.UNDOCARD:
+        elif option.code == OptionCode.UNDO_CARD:
             return self.undo_card(player.color)
+        elif option.code == OptionCode.PASS:
+            return self.drop_cards(player.color)
         else:
-            raise Exception(f"Unknown command {option.command}")
+            raise Exception(f"Unknown option {option.code}")
 
     def next_player(self, player):
         if player.color == Color.RED:
@@ -158,24 +168,37 @@ class Game(object):
             raise Exception(f"Unknown color {player.Color}")
 
     def next_turn(self):
-        self.current_player = self.next_player(self.current_player)
-        self.turn()
+        if all(len(player.hand) == 0 for player in self.players.values()):
+            self.next_deal()
+        else:
+            self.current_player = self.next_player(self.current_player)
+            while len(self.current_player.hand) == 0:
+                self.current_player = self.next_player(self.current_player)
+            self.turn()
+
+    def next_deal(self):
+        self.current_player = self.next_player(self.current_dealer)
+        self.current_player.options = [Option(OptionCode.DEAL, "Delen")]
+        self.current_player.message = f"Jij bent aan de beurt om te delen."
+        self.current_player.set_state(StateCode.DEAL)
+        
+        for player in self.players.values():
+            if player.color != self.current_player.color:
+                player.message = f"{self.current_player.name} is aan de beurt om te delen"
+                player.set_state(StateCode.DEAL_OTHER, other_player_name=self.current_player.name) 
 
     def turn(self):
-        if len(self.current_player.hand) > 0:
-            self.current_player.options = [Option(Command.PLAYCARD, [card], card) for card in self.current_player.hand]
-            self.current_player.message = "Kies een kaart om te spelen"
-            other_message = ""
-        else:
-            self.current_player.options = [Option(Command.DEAL, None, "Delen")]
-            self.current_player.message = f"Jij bent aan de beurt om te delen."
-            other_message = " om te delen"
+        self.current_player.options = [Option(OptionCode.PLAY_CARD, card.denom, card=card) for card in self.current_player.hand]
+        self.current_player.options.append(Option(OptionCode.PASS, "Pas"))
+        self.current_player.message = "Kies een kaart om te spelen"
+        self.current_player.set_state(StateCode.PLAY_CARD)
 
         for player in self.players.values():
             if player.color != self.current_player.color:
-                player.message = f"{self.current_player.name} is aan de beurt" + other_message
+                player.message = f"{self.current_player.name} is aan de beurt"
+                player.set_state(StateCode.PLAY_CARD_OTHER, other_player_name=self.current_player.name) 
 
-    def mate(self, player):
+    def partner(self, player):
         if player.color == Color.RED:
             return self.players[Color.YELLOW]
         elif player.color == Color.BLUE:
@@ -190,14 +213,6 @@ class Game(object):
 
 if __name__ == "__main__":
     game = Game()
-
-    # game.deal(Color.BLUE)
-    # game.changeCard(Color.YELLOW, game.players[Color.YELLOW].hand[4])
-    # game.changeCard(Color.RED, game.players[Color.RED].hand[2])
-    # game.changeCard(Color.GREEN, game.players[Color.GREEN].hand[0])
-    # game.changeCard(Color.BLUE, game.players[Color.BLUE].hand[5])
-    # game.playCard(Color.YELLOW, game.players[Color.YELLOW].hand[1])
-    # game.undoCard(Color.YELLOW)
 
     colors = [Color.BLUE, Color.YELLOW, Color.GREEN, Color.RED]
 
@@ -221,4 +236,4 @@ if __name__ == "__main__":
     for player in game.players.values():
         print(player.__dict__, end="\n\n")
 
-    print(game.stock, end="\n\n")
+    print([card.__dict__ for card in game.stock], end="\n\n")

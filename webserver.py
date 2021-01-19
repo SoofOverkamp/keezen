@@ -9,9 +9,10 @@ import logging
 import os
 import websockets
 
-from command import (Command, Option)
+from color import Color
+from option import OptionCode, Option
 from game import Game
-from player import (Color, Player)
+from player import ErrorCode, StateCode, Player
 
 logging.basicConfig()
 
@@ -77,12 +78,16 @@ async def notify(player_sockets):
 
 
 async def handler(websocket, path):
-    player = None
+    player = Player()
+    player.options = [
+        Option(OptionCode.NEW_GAME, "Nieuw spel"), 
+        Option(OptionCode.JOIN_GAME, "Doe mee met een spel", game_code='3936')]
+    player.message = "Wat wil je doen?"
+    player.set_state(StateCode.START)
+    game_code = 0
     try:
-        player = Player()
-        player.options = [
-            Option(Command.NEWGAME, None, "Nieuw spel"), 
-            Option(Command.JOINGAME, ["#"], "Doe mee met een spel")]
+        await notify([(player, websocket)])
+
         async for message in websocket:
             option = Option(**json.loads(message))
 
@@ -90,67 +95,75 @@ async def handler(websocket, path):
                 await notify([(player, websocket)])
                 continue
 
-            if option.command == Command.NEWGAME:
-                code = 3936  # random.randint(1000, 9999);
-                sockets[code] = [(player, websocket)]
-                player.message = f"De andere spelers kunnen meedoen door code {code} in te voeren"
-                player.options = []
-                await notify(sockets[code])
+            player.set_error(None)
 
-            elif option.command == Command.JOINGAME:
-                code = int(option.args[0])
-                socketlist = sockets.get(code)
+            if option.code == OptionCode.NEW_GAME:
+                game_code = 3936  # random.randint(1000, 9999);
+                sockets[game_code] = [(player, websocket)]
+                player.message = f"De andere spelers kunnen meedoen door code {game_code} in te voeren"
+                player.set_state(StateCode.JOIN_OTHERS, game_code=game_code)
+                player.options = []
+                await notify(sockets[game_code])
+
+            elif option.code == OptionCode.JOIN_GAME:
+                game_code = option.game_code
+                socketlist = sockets.get(game_code) if game_code > 0 else None
                 if socketlist == None:
-                    player.message = f"onbekande code {code}"
+                    player.message = f"onbekande code {game_code}"
+                    player.set_error(ErrorCode.UNKNOWN_CODE, game_code=game_code)
                     await notify([(player, websocket)])
                     continue
 
-                sockets[code].append((player, websocket))
-                if len(sockets[code]) < 4:
+                sockets[game_code].append((player, websocket))
+                if len(sockets[game_code]) < 4:
                     player.message = "wacht op de andere spelers"
+                    player.set_state(StateCode.JOIN_OTHERS, game_code=game_code)
                     player.options = []
                     await notify([(player, websocket)])
 
                 else:
-                    for (player, _) in sockets[code]:
+                    for (player, _) in sockets[game_code]:
                         player.message = "Kies een kleur om mee te spelen"
+                        player.set_state(StateCode.PICK_COLOR)
                         player.options = [
-                            Option(Command.PICKCOLOR, [Color.RED], "Rood"),
-                            Option(Command.PICKCOLOR, [Color.BLUE], "Blauw"),
-                            Option(Command.PICKCOLOR, [Color.YELLOW], "Geel"),
-                            Option(Command.PICKCOLOR, [Color.GREEN], "Groen")
+                            Option(OptionCode.PICK_COLOR, "Rood", color=Color.RED),
+                            Option(OptionCode.PICK_COLOR, "Blauw", color=Color.BLUE),
+                            Option(OptionCode.PICK_COLOR, "Geel", color=Color.YELLOW),
+                            Option(OptionCode.PICK_COLOR, "Groen", color=Color.GREEN)
                             ]
                    
-                    await notify(sockets[code])
+                    await notify(sockets[game_code])
 
-            elif option.command == Command.PICKCOLOR:
-                color = option.args[0]
-                if any(other.color == color for (other, _) in sockets[code]):
+            elif option.code == OptionCode.PICK_COLOR:
+                color = option.color
+                if any(other.color == color for (other, _) in sockets[game_code]):
                     player.message = f"Kleur {option.text} is al gekozen door een andere speler. " + player.message
+                    player.set_error(ErrorCode.COLOR_ALREADY_CHOSEN, color=color) 
                     await notify([(player, websocket)])
                     continue
 
                 player.color = color
                 player.name = option.text
                 player.message = "Wacht op de andere spelers"
+                player.set_state(StateCode.PICK_COLOR_OTHERS)
                 player.options = []
 
-                for (other, _) in sockets[code]:
-                    other.options = [option for option in other.options if option.args[0] != color]
+                for (other, _) in sockets[game_code]:
+                    other.options = [option for option in other.options if option.color != color]
 
-                if all( not any(p.options) for (p, _) in sockets[code]):
-                    game = Game(p for (p, _) in sockets[code])
-                    games[code] = game
+                if all( not any(p.options) for (p, _) in sockets[game_code]):
+                    game = Game(p for (p, _) in sockets[game_code])
+                    games[game_code] = game
 
-                await notify(sockets[code])
+                await notify(sockets[game_code])
 
             else:
-                game = games[code]
+                game = games[game_code]
                 game.play_option(player, option)
-                await notify(sockets[code])
+                await notify(sockets[game_code])
     finally:
-        if player is not None:
-            sockets[code].remove((player, websocket))
+        if player is not None and game_code > 0:
+            sockets[game_code].remove((player, websocket))
         pass
 
 if __name__ == "__main__":
