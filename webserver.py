@@ -108,7 +108,7 @@ async def handler(websocket, path):
             elif option.code == OptionCode.JOIN_GAME:
                 game_code = option.game_code
                 socketlist = sockets.get(game_code) if game_code > 0 else None
-                if socketlist == None:
+                if socketlist is None:
                     player.message = f"onbekande code {game_code}"
                     player.set_error(ErrorCode.UNKNOWN_CODE, game_code=game_code)
                     await notify([(player, websocket)])
