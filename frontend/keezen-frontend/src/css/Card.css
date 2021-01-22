@@ -1,0 +1,62 @@
+.hand {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+}
+
+.playing-card {
+    width: 165px;
+    height: 160px;
+    border-top: solid 2px;
+    border-left: solid 2px;
+    border-right: solid 2px;
+    border-color: lightgray;
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: center;
+
+    padding: 20px;
+    margin: 70px 20px -70px;
+    transition: margin-top 500ms ease;
+}
+
+.playing-card:hover {
+    margin-top: 0;
+    transition: margin-top 500ms ease;
+}
+
+.playing-card .card-denom {
+    font-size: 36pt;
+    margin-right: 50px;
+    width: 35px;
+}
+
+.playing-card .card-suit {
+    font-size: 27pt;
+}
+
+.playing-card.card-ruiten,.playing-card.card-harten
+{
+    color: red;
+}
+
+.playing-card.card-schoppen,.playing-card.card-klaver
+{
+    color: black;
+}
+
+.playing-card .card-button {
+    background-color: #e0e0e0;
+    border: 1px solid black;
+    border-radius: 5px;
+    font-size: 20pt;
+
+    width: 90px;
+}
+
+.playing-card .card-button:hover {
+    background-color: #f2f2f2;
+}

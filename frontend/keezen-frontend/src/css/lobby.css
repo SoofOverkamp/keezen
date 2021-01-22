@@ -1,0 +1,46 @@
+.color-pick {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: #1d2124 2px solid;
+    opacity: 50%;
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    font-size: 19pt;
+    padding: 3px;
+    margin:auto;
+}
+
+.color-pick.mine {
+    opacity: 100%;
+}
+
+.color-pick.mine:before,
+.color-pick.selected:before {
+    content: "\f00c";
+}
+
+.color-pick.selectable:hover {
+    opacity: 100%;
+}
+
+.color-pick.selectable:hover:before {
+    content: "\f00c";
+}
+
+.color-pick.red {
+    background: #ff1d1d;
+}
+
+.color-pick.blue {
+    background: #2b46e5;
+}
+
+.color-pick.yellow {
+    background: #ffff00;
+}
+
+
+.color-pick.green {
+    background: #0ce20a;
+}
