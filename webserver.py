@@ -95,6 +95,8 @@ async def handler(websocket, path):
                 await notify([(player, websocket)])
                 continue
 
+            # Thisis a change
+
             player.set_error(None)
 
             if option.code == OptionCode.NEW_GAME:
