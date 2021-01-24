@@ -1,6 +1,6 @@
 import random
 
-suits = ["harts", "spades", "clubs", "diamonds"]
+suits = ["hearts", "spades", "clubs", "diamonds"]
 denoms = ["ace", "king", "queen", "jack", "10", "9", "8", "7", "6", "5", "4", "3", "2"]
 
 class Card(object):
