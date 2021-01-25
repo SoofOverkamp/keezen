@@ -90,7 +90,7 @@ class Player(object):
         return found_option
 
     def set_error(self, error_code, **kwargs):
-        if error_code != None:
+        if error_code is not None:
             self.error = PlayerError(error_code, **kwargs)
         else:
             self.error = None
