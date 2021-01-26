@@ -1,24 +1,21 @@
 from enum import Enum
+from cards import Card
 from color import Color
 from option import Option, OptionCode
+from typing import List
+
 import json
 
 
 class StateCode(str, Enum):
     START = "start"
-    JOIN_OTHERS = "join_others"
     PICK_COLOR = "pick_color"
-    PICK_COLOR_OTHERS = "pick_color_others"
-    FIRST_DEAL = "first_deal"
     DEAL = "deal"
     DEAL_OTHER = "deal_other"
     SWAP_CARD = "swap_card"
-    SWAP_CARD_PARTNER = "swap_card_partner"
     SWAP_CARD_OTHERS = "swap_card_others"
     PLAY_CARD = "play_card"
     PLAY_CARD_OTHER = "play_card_other"
-    PLAYING_CARD = "playing_card"
-    PLAYING_CARD_OTHER = "playing_card_other"
 
 
 class ErrorCode(str, Enum):
@@ -38,18 +35,50 @@ class PlayerError(object):
         self.code = ErrorCode(code)
         self.args = kwargs
 
+
+class OtherPlayer(object):
+    def __init__(self, color, name):
+        self.color = color
+        self.name = name
+
+
+class DictEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if hasattr(obj, '__dict__'):
+            return obj.__dict__
+        return json.JSONEncoder.default(self, obj)
+
+
 class Player(object):
+
+    color: Color
+    name: str
+    hand: List[Card]
+    options: List[Option]
+    message: str
+    state: PlayerState
+    error: PlayerError
+    swap_card: Card
+    card_is_swapped: bool
+    passed: bool
+    others: List[OtherPlayer]
+    current_player: OtherPlayer
+    play_card: Card
+
     def __init__(self, color = None, name = None):
         self.color = color
         self.name = name
         self.hand = []
         self.options = []
         self.message = "Even wachten"
-        self.set_state(StateCode.START)
+        self.state = StateCode.START
         self.error = None
-        self.selected_card = None
-        self.card_is_changed = False
+        self.swap_card = None
+        self.card_is_swapped = False
         self.passed = False
+        self.others = []
+        self.current_player = None
+        self.play_card = None
 
     def check_option(self, option):
         found_option = any(o.isOption(option) for o in self.options)
@@ -60,27 +89,40 @@ class Player(object):
             
         return found_option
 
-    def set_state(self, state_code, **kwargs):
-        self.state = PlayerState(state_code, **kwargs)
-
     def set_error(self, error_code, **kwargs):
-        if error_code != None:
+        if error_code is not None:
             self.error = PlayerError(error_code, **kwargs)
         else:
             self.error = None
 
+    def set_others(self, all_players):
+        self.others = [OtherPlayer(p.color, p.name) for p in all_players if p.name != self.name or p.color != self.color]
 
-class DogEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if hasattr(obj, '__dict__'):
-            return obj.__dict__
-        return json.JSONEncoder.default(self, obj)
+    def set_current(self, current_player):
+        self.current_player = OtherPlayer(current_player.color, current_player.name)
+        self.play_card = current_player.play_card
+
+    def merge_from(self, other):
+        self.color = other.color
+        self.hand = other.hand
+        self.options = other.options
+        self.message = other.message
+        self.state = other.state
+        self.error = other.error
+        self.swap_card = other.swap_card
+        self.card_is_swapped = other.card_is_swapped
+        self.passed = other.passed
+        self.current_player = other.current_player
+        self.play_card = other.play_card
+
+    def get_json(self):
+        return json.dumps(self.__dict__, cls=DictEncoder)
 
 
 if __name__ == "__main__":
     player = Player(Color.BLUE, "Groen")
     player.options = [Option(OptionCode.NEW_GAME, "Nieuw spel", color='green'), Option(OptionCode.JOIN_GAME, "doe mee met een spel")]
-    player.set_state(StateCode.PICK_COLOR, other_player_name="Rood")
+    player.state = StateCode.PICK_COLOR
     print(player.__dict__)
     print(player.options[0].__dict__)
-    print(json.dumps(player.__dict__, cls=DogEncoder))
+    print(player.get_json())
