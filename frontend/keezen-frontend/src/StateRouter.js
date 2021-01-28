@@ -12,20 +12,15 @@ export const SiteState = {
     JOIN_LINK: "join_link",
     // Lobby
     START: "start",
-    JOIN_OTHERS: "join_others",
     PICK_COLOR: "pick_color",
-    PICK_COLOR_OTHERS: "pick_color_others",
-    FIRST_DEAL: "first_deal",
-    // Hand
+    // Dealing
     DEAL: "deal",
     DEAL_OTHER: "deal_other",
+    // Hand
     SWAP_CARD: "swap_card",
-    SWAP_CARD_PARTNER: "swap_card_partner",
     SWAP_CARD_OTHERS: "swap_card_others",
     PLAY_CARD: "play_card",
     PLAY_CARD_OTHER: "play_card_other",
-    PLAYING_CARD: "playing_card",
-    PLAYING_CARD_OTHER: "playing_card_other",
 
 }
 
@@ -52,8 +47,8 @@ export default function StateRouter() {
 
     console.log({path, path_code});
     const initial_state = path_code === null ?
-        { state: { code: SiteState.WAITING_FOR_WS } } :
-        { state: { code: SiteState.JOIN_LINK, args: { game_code: path_code } } };
+        { state: SiteState.WAITING_FOR_WS } :
+        { state: SiteState.JOIN_LINK, game_code: path_code };
 
     const send = websocketStatus === WebsocketStatus.CONNECTED ?
         (data) => websocket.send(JSON.stringify(data)) :
@@ -61,21 +56,21 @@ export default function StateRouter() {
 
     const [message, setMessage] = useState(initial_state);
 
-    const { state: { code: state, args: state_args }, options } = message;
+    const { state, options, game_code, ...args } = message;
 
     useEffect(() => {
         if (websocketStatus === WebsocketStatus.CONNECTED && state === SiteState.JOIN_LINK) {
             send({
                 code: Commands.JOIN_GAME,
-                game_code: state_args.game_code,
+                game_code,
                 text: "Neem deel aan spel",
             })
         }
     }, [websocketStatus, message])
 
     useEffect(() => {
-        if (state_args && state_args.game_code !== undefined && state_args.game_code !== null) {
-            window.history.pushState(null, "", `/${state_args.game_code}`)
+        if (game_code !== undefined && game_code !== null) {
+            window.history.pushState(null, "", `/${game_code}`)
         }
         if (isNaN(path_code)) {
             window.history.pushState(null, "", "/")
@@ -142,12 +137,9 @@ export default function StateRouter() {
                               text: "Deel", 
                           })}/>
         case SiteState.SWAP_CARD:
-        case SiteState.SWAP_CARD_PARTNER:
         case SiteState.SWAP_CARD_OTHERS:
         case SiteState.PLAY_CARD:
         case SiteState.PLAY_CARD_OTHER:
-        case SiteState.PLAYING_CARD:
-        case SiteState.PLAYING_CARD_OTHER:
             return <Game message={message}
                          swapCard={(card) => send({
                              code: Commands.SWAP_CARD,
@@ -178,9 +170,8 @@ export default function StateRouter() {
                 </div>
             </div>;
         case SiteState.DEAL_OTHER:
-            return <h1>Wachten tot {state_args.other_player_name} heeft gedeeld</h1>
-            
+            return <h1>Wachten tot {args.current_player.color}({args.current_player.name}) heeft gedeeld</h1>
+        default:
+            return `state: ${state}, wsstatus: ${websocketStatus}`
     }
-
-    return `state: ${state}, wsstatus: ${websocketStatus}`
 }

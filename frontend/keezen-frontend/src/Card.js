@@ -8,7 +8,11 @@ export function Card({value: {suit, denom}, play, animate, selected, select}) {
             <span className="card-denom">{denomToChar(denom)}</span>
             <span className="card-suit">{suitToIcon(suit)}</span>
         </div>
-        {play && <button className="btn btn-success"  onClick={play}><i className="fa fa-arrow-up"/></button>}
+        {play && <button className="btn btn-success"  onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            play(event);
+        }}><i className="fa fa-arrow-up"/></button>}
     </div>;
 }
 

@@ -2,29 +2,25 @@ import React from "react";
 import "./css/lobby.css"
 import Colors from "./util/colors";
 import deck from './img/deck.svg';
-import { SiteState } from "./StateRouter";
+import { Commands } from "./StateRouter";
 
 export default function Lobby({ message, pickColor, deal }) {
-    const { color, options, state: { code: state, args: { game_code, ...state_args } } } = message;
-    const freeColors = (options && options.map((o) => o.color)) || [];
-    const circle_args = { state, myColor: color, freeColors, pickColor };
+    const { color, options, state, game_code, others, name,...args } = message;
+    const circle_args = { state, myColor: color, myName: name, others, pickColor };
+    const canDeal = options.find((o) => o.code === Commands.DEAL);
     return <div className="mt-4">
+        <div className="row my-2">
+            <h1>Je kan meedoen door naar <a href={`/${game_code}`}>{window.location.host}/{game_code}</a> te gaan
+            </h1>
+        </div>
+        <div className="row justify-content-center my-2">
+            <Circle color={Colors.RED} {...circle_args}/>
+            <Circle color={Colors.YELLOW} {...circle_args}/>
+            <Circle color={Colors.BLUE} {...circle_args}/>
+            <Circle color={Colors.GREEN} {...circle_args}/>
+        </div>
         {
-            state === SiteState.JOIN_OTHERS &&
-            <div className="row my-2">
-                <h1>Je kan meedoen door naar <a href={`/${game_code}`}>{window.location.host}/{game_code}</a> te gaan
-                </h1>
-            </div>
-        }{/*<hr/>*/}{
-            state !== SiteState.JOIN_OTHERS &&
-            <div className="row justify-content-center my-2">
-                <Circle color={Colors.RED} {...circle_args}/>
-                <Circle color={Colors.YELLOW} {...circle_args}/>
-                <Circle color={Colors.BLUE} {...circle_args}/>
-                <Circle color={Colors.GREEN} {...circle_args}/>
-            </div>
-        }{
-            state === SiteState.FIRST_DEAL &&
+            canDeal &&
             <div className="row justify-content-center my-2">
                 <div className="btn btn-link" onClick={deal}>
                     <img src={deck} alt="kaartenstapel"/>
@@ -36,16 +32,21 @@ export default function Lobby({ message, pickColor, deal }) {
     </div>
 }
 
-function Circle({ state, color, myColor, freeColors, pickColor }) {
+function Circle({ color, myColor, myName, others, pickColor }) {
     const isMine = color === myColor;
-    const isSelectable = freeColors.includes(color)
-    const isPicked = state === SiteState.PICK_COLOR && !isSelectable;
-    return <div className="col-2">
+    const playerInfo = isMine ?
+        {color, name: myName} :
+        others.find((o) => o.color === color);
+    const isSelectable = !(playerInfo ?? false);
+    const isPicked = !isSelectable;
+    const name = (playerInfo && playerInfo.name) || "";
+    return <div className="col-2 flex-column">
         <div className={`color-pick 
                 ${color} ${isPicked ? "selected" : ""} 
                 ${isSelectable ? "selectable" : ""} 
                 ${isMine ? "mine" : ""}`}
-            onClick={() => isSelectable && pickColor(color)}
+             onClick={() => isSelectable && pickColor(color)}
         />
+        <h4>{name}</h4>
     </div>
 }

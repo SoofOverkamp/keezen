@@ -5,48 +5,46 @@ import { Card } from "./Card";
 
 export default function Game({ message, swapCard, playCard, confirmPlay, undoPlay }) {
     console.log(message);
-    const { hand, state: { code: state, args: {other_player_name, card} }, selected_card } = message;
+    const { hand, state, current_player, play_card, swap_card } = message;
 
     let play = null;
+    let card = null;
     let text;
     switch (state) {
         case SiteState.SWAP_CARD:
             play = swapCard;
-            text = "Kies een kaart voor je partner";
-            break;
-        case SiteState.SWAP_CARD_PARTNER:
-            text = "Wacht op een kaart van je partner";
+            if (swap_card) {
+                card = swap_card;
+                text = "Wacht op een kaart van je partner";
+            } else {
+                text = "Kies een kaart voor je partner";
+            }
             break;
         case SiteState.SWAP_CARD_OTHERS:
             text = "Wacht op het andere team";
             break;
         case SiteState.PLAY_CARD:
             play = playCard;
+            card = play_card;
             text = "Kies een kaart om te spelen";
             break;
-        case SiteState.PLAYING_CARD:
-            text = "Bevestig kaart keuze";
-            break;
         case SiteState.PLAY_CARD_OTHER:
-            text = `${other_player_name} is een kaart aan het kiezen`;
+            card = play_card;
+            text = `${current_player.color}(${current_player.name}) is een kaart aan het kiezen`;
             break;
-        case SiteState.PLAYING_CARD_OTHER:
-            text = `${other_player_name} speelt kaart`;
-            break;
-
     }
 
 
     return <Fragment>
         <h1>{text}</h1>
-        {card || selected_card ?
-            <Card value={card || selected_card}/> : null
+        {card &&
+        <Card value={card}/>
         }
-        {state === SiteState.PLAYING_CARD ?
-                <button className="btn btn-primary" onClick={confirmPlay}>Bevestig</button> : null
+        {card && play_card &&
+        <button className="btn btn-primary" onClick={confirmPlay}>Bevestig</button>
         }
-        {state === SiteState.SWAP_CARD_PARTNER || state === SiteState.PLAYING_CARD ?
-            <button className="btn btn-danger" onClick={undoPlay}>Neem terug</button> : null
+        {card &&
+        <button className="btn btn-danger" onClick={undoPlay}>Neem terug</button>
         }
         <Hand cards={hand} play={play}/>
     </Fragment>;
