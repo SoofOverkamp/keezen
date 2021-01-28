@@ -97,8 +97,6 @@ async def handler(websocket, path):
                 await notify([(player, websocket)])
                 continue
 
-            # Thisis a change
-
             player.set_error(None)
 
             if option.code == OptionCode.NEW_GAME:
@@ -110,12 +108,13 @@ async def handler(websocket, path):
                     users.append(users[0])
                     users.remove(users[0])
                 player = game.join_player(option.user_name)
+                player.game_code = game_code
                 sockets[game_code] = [(player, websocket)]
                 await notify(sockets[game_code])
 
             elif option.code == OptionCode.JOIN_GAME:
                 game_code = option.game_code
-                game = games.get(game_code) if game_code > 0 else None
+                game = games.get(game_code) if game_code is not None and type(game_code) is int and game_code > 0 else None
 
                 if game is None:
                     player.message = f"onbekande code {game_code}"
@@ -128,6 +127,7 @@ async def handler(websocket, path):
                     users.append(users[0])
                     users.remove(users[0])
                 player = game.join_player(option.user_name)
+                player.game_code = game_code
                 sockets[game_code].append((player, websocket))
                 await notify(sockets[game_code])
 
