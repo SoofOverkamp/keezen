@@ -19,7 +19,7 @@
     align-content: flex-start;
 
     padding: 20px;
-    margin: 70px 20px -150px;
+    margin: 70px 0 -150px;
     transition: margin-top 500ms ease;
 }
 

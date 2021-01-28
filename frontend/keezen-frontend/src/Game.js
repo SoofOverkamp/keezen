@@ -30,7 +30,7 @@ export default function Game({ message, swapCard, playCard, confirmPlay, undoPla
             break;
         case SiteState.PLAY_CARD_OTHER:
             card = play_card;
-            text = `${current_player.color}(${current_player.name}) is een kaart aan het kiezen`;
+            text = `${current_player.color}(${current_player.name}) is een kaart aan het spelen`;
             break;
     }
 
@@ -40,10 +40,10 @@ export default function Game({ message, swapCard, playCard, confirmPlay, undoPla
         {card &&
         <Card value={card}/>
         }
-        {card && play_card &&
+        {card && play_card && state === SiteState.PLAY_CARD &&
         <button className="btn btn-primary" onClick={confirmPlay}>Bevestig</button>
         }
-        {card &&
+        {card && (state === SiteState.PLAY_CARD || state === SiteState.SWAP_CARD) &&
         <button className="btn btn-danger" onClick={undoPlay}>Neem terug</button>
         }
         <Hand cards={hand} play={play}/>

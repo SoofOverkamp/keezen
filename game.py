@@ -146,7 +146,7 @@ class Game(object):
         for other in self.players:
             if other.color != player.color:
                 other.message = f"{player.name} speelt een {card.denom}"
-                other.state = StateCode.PLAY_CARD_OTHER,
+                other.state = StateCode.PLAY_CARD_OTHER
                 other.play_card = card
 
 
