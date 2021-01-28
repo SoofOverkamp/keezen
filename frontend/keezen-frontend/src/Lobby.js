@@ -6,7 +6,8 @@ import { Commands } from "./StateRouter";
 
 export default function Lobby({ message, pickColor, deal }) {
     const { color, options, state, game_code, others, name,...args } = message;
-    const circle_args = { state, myColor: color, myName: name, others, pickColor };
+    const pickableColors = options.filter((o) => o.code === Commands.PICK_COLOR).map((o) => o.color);
+    const circle_args = { state, myColor: color, myName: name, others, pickableColors, pickColor };
     const canDeal = options.find((o) => o.code === Commands.DEAL);
     return <div className="mt-4">
         <div className="row my-2">
@@ -32,12 +33,12 @@ export default function Lobby({ message, pickColor, deal }) {
     </div>
 }
 
-function Circle({ color, myColor, myName, others, pickColor }) {
+function Circle({ color, myColor, myName, others, pickableColors, pickColor }) {
     const isMine = color === myColor;
     const playerInfo = isMine ?
         {color, name: myName} :
         others.find((o) => o.color === color);
-    const isSelectable = !(playerInfo ?? false);
+    const isSelectable = pickableColors.includes(color);
     const isPicked = !isSelectable;
     const name = (playerInfo && playerInfo.name) || "";
     return <div className="col-2 flex-column">

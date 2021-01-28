@@ -122,10 +122,7 @@ export default function StateRouter() {
                                     game_code: 3936,
                                     text: "Neem deel aan spel 3936",
                                 })}/>
-        case SiteState.JOIN_OTHERS:
         case SiteState.PICK_COLOR:
-        case SiteState.PICK_COLOR_OTHERS:
-        case SiteState.FIRST_DEAL:
             return <Lobby message={message}
                           pickColor={(color) => send({
                               code: Commands.PICK_COLOR,
