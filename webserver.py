@@ -23,7 +23,7 @@ games = dict()   # code -> game
 
 sockets = dict()   # code -> [(player, websocket), ...]
 
-users = ["Anna", "Bob", "Cynthia", "Daan", "Esther", "Frank", "Gerben", "Hanna", "Ida", "Joost", "Karin", "Loes", "Max", "Nina"]
+users = ["Anna", "Bob", "Cynthia", "Daan", "Esoirulthayro", "Frank", "Gerben", "Hanna", "Ida", "Joost", "Karin", "Loes", "Max", "Nina"]
 
 
 class DogEncoder(json.JSONEncoder):
