@@ -11,11 +11,12 @@ import random
 import websockets
 from http import HTTPStatus
 
-
-from color import Color
 from option import OptionCode, Option
 from game import Game
 from player import ErrorCode, StateCode, Player
+
+HOST = os.environ.get("KEEZEN_HOST") or "localhost"
+PORT = os.environ.get("KEEZEN_PORT") or 6789
 
 logging.basicConfig()
 
@@ -151,9 +152,9 @@ if __name__ == "__main__":
 
     static_handler = functools.partial(process_request, os.path.join(os.getcwd(), 'ui'))
 
-    start_server = websockets.serve(handler, "localhost", 6789, process_request=static_handler)
+    start_server = websockets.serve(handler, HOST, PORT, process_request=static_handler)
 
-    print("Running server at http://127.0.0.1:6789/")
+    print(f"Running server at {HOST}:{PORT}")
 
     asyncio.get_event_loop().run_until_complete(start_server)
     asyncio.get_event_loop().run_forever()
