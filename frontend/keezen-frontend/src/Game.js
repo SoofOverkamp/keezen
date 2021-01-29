@@ -2,6 +2,7 @@ import React, { Fragment } from 'react';
 import Hand from "./Hand";
 import { SiteState } from "./StateRouter";
 import { Card } from "./Card";
+import { colorToText } from "./util/colors";
 
 export default function Game({ message, swapCard, playCard, confirmPlay, undoPlay }) {
     console.log(message);
@@ -30,7 +31,7 @@ export default function Game({ message, swapCard, playCard, confirmPlay, undoPla
             break;
         case SiteState.PLAY_CARD_OTHER:
             card = play_card;
-            text = `${current_player.color}(${current_player.name}) is een kaart aan het spelen`;
+            text = `${colorToText(current_player.color)} is aan de beurt`;
             break;
     }
 
