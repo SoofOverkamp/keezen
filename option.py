@@ -30,8 +30,8 @@ class Option(object):
     
         return \
             self.code == other.code and \
-            self.color == other.color and \
-            self.card == other.card
+            self.color in [None, other.color] and \
+            self.card in [None, other.card]
 
 
 if __name__ == "__main__":

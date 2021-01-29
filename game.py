@@ -24,11 +24,22 @@ class Game(object):
         self.current_player = None
         self.current_dealer = None
 
-    def join_player(self, name):
-        player = Player(name=name)
+    def join_player(self, name, color=None):
+        if color is not None:
+            color_player = next((p for p in self.players if p.color == color and p.Name is None), None)
+            if color_player is not None:
+                color_player.name = name
+                return color_player
+
+        player = Player(None, name)
         self.players.append(player)
         player.state = StateCode.PICK_COLOR
-        self.set_pick_color_state()
+
+        if color is not None:
+            self.pick_color(player, color)
+        else:
+            self.set_pick_color_state()
+
         return player
 
     def unjoin_player(self, player):

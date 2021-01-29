@@ -130,7 +130,7 @@ async def handler(websocket, path):
                     option.user_name = users[0]
                     users.append(users[0])
                     users.remove(users[0])
-                player = game.join_player(option.user_name)
+                player = game.join_player(option.user_name, option.color)
                 player.game_code = game_code
                 sockets[game_code].append((player, websocket))
                 await notify(sockets[game_code])
