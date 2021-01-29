@@ -13,7 +13,7 @@ const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 
 const RETRY_TIMEOUT = 1000;
 const ADDRESS = window.location.hostname;
-const PORT = IS_PRODUCTION ? 6000 : 6789;
+const PORT = IS_PRODUCTION ? 443 : 6789;
 const PROTOCOL = IS_PRODUCTION ? "wss" : "ws";
 
 export default function useWebsocket() {
