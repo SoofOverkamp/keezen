@@ -5,6 +5,7 @@ import LandingPage from "./LandingPage";
 import Lobby from "./Lobby";
 import Game from "./Game";
 import deck from "./img/deck.svg";
+import { colorToText } from "./util/colors"
 
 export const SiteState = {
     // Frontend only
@@ -171,7 +172,7 @@ export default function StateRouter() {
                 </div>
             </div>;
         case SiteState.DEAL_OTHER:
-            return <h1>Wachten tot {args.current_player.color}({args.current_player.name}) heeft gedeeld</h1>
+            return <h1>Wachten tot {colorToText(args.current_player.color)} heeft gedeeld</h1>
         default:
             return `state: ${state}, wsstatus: ${websocketStatus}`
     }
