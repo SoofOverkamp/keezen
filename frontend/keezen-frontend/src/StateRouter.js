@@ -3,17 +3,25 @@ import useWebsocket, { WebsocketStatus } from "./util/useWebsocket";
 import LoadingJoker from "./LoadingJoker";
 import LandingPage from "./LandingPage";
 import Lobby from "./Lobby";
+import Game from "./Game";
+import deck from "./img/deck.svg";
 
 export const SiteState = {
     // Frontend only
     WAITING_FOR_WS: "waiting_for_ws",
     JOIN_LINK: "join_link",
-    // Shared
+    // Lobby
     START: "start",
-    JOIN_OTHERS: "join_others",
     PICK_COLOR: "pick_color",
-    PICK_COLOR_OTHERS: "pick_color_others",
-    FIRST_DEAL: "first_deal",
+    // Dealing
+    DEAL: "deal",
+    DEAL_OTHER: "deal_other",
+    // Hand
+    SWAP_CARD: "swap_card",
+    SWAP_CARD_OTHERS: "swap_card_others",
+    PLAY_CARD: "play_card",
+    PLAY_CARD_OTHER: "play_card_other",
+
 }
 
 export const Commands = {
@@ -21,7 +29,7 @@ export const Commands = {
     JOIN_GAME: "join_game",
     PICK_COLOR: "pick_color",
     DEAL: "deal",
-    CHANGE_CARD: "change_card",
+    SWAP_CARD: "swap_card",
     PLAY_CARD: "play_card",
     READY: "ready",
     UNDO_CARD: "undo_card",
@@ -31,32 +39,40 @@ export const Commands = {
 export default function StateRouter() {
     const [websocket, websocketStatus] = useWebsocket();
 
-    const path = window.location.pathname.split("/");
-    console.log(path);
-    const initial_state = path[1] === "" ?
-        { state: {code: SiteState.WAITING_FOR_WS }} :
-        { state: {code: SiteState.JOIN_LINK, args: {game_code: parseInt(path[1]) }}};
+    const path = window.location.pathname;
 
+    const path_code = path === "/" ?
+        null :
+        parseInt(path.split("/")[1]);
+
+    console.log({path, path_code});
+    const initial_state = path_code === null ?
+        { state: SiteState.WAITING_FOR_WS } :
+        { state: SiteState.JOIN_LINK, game_code: path_code };
+
+    const send = websocketStatus === WebsocketStatus.CONNECTED ?
+        (data) => websocket.send(JSON.stringify(data)) :
+        (data) => console.error(`Cannot send: websocket is in state ${websocketStatus}, data:`, data);
 
     const [message, setMessage] = useState(initial_state);
 
-    const {state: {code: state, args: state_args}, options} = message;
+    const { state, options, game_code, ...args } = message;
 
     useEffect(() => {
         if (websocketStatus === WebsocketStatus.CONNECTED && state === SiteState.JOIN_LINK) {
-            websocket.send(JSON.stringify({
+            send({
                 code: Commands.JOIN_GAME,
-                game_code: state_args.game_code,
-                text: "Neem deel aan spel",   //TODO replace with option
-            }))
+                game_code,
+                text: "Neem deel aan spel",
+            })
         }
     }, [websocketStatus, message])
 
     useEffect(() => {
-        if (state_args && state_args.game_code !== undefined && state_args.game_code !== null) {
-            window.history.pushState(null, "", `/${state_args.game_code}`)
+        if (game_code !== undefined && game_code !== null) {
+            window.history.pushState(null, "", `/${game_code}`)
         }
-        if (state_args && isNaN(state_args.game_code)) {
+        if (isNaN(path_code)) {
             window.history.pushState(null, "", "/")
         }
     }, [message])
@@ -96,26 +112,63 @@ export default function StateRouter() {
         case SiteState.WAITING_FOR_WS:
             return <LoadingJoker size={44}/>
         case SiteState.START:
-            return <LandingPage state={message}
-                                newGame={() => websocket.send(JSON.stringify({
+            return <LandingPage message={message}
+                                newGame={() => send({
                                     code: Commands.NEW_GAME,
-                                    text: "Begin nieuw spel",   //TODO replace with option
-                                }))}/>
-        case SiteState.JOIN_OTHERS:
+                                    text: "Begin nieuw spel",
+                                })}
+                                joinGame={(code) => send({
+                                    code: Commands.JOIN_GAME,
+                                    game_code: 3936,
+                                    text: "Neem deel aan spel 3936",
+                                })}/>
         case SiteState.PICK_COLOR:
-        case SiteState.PICK_COLOR_OTHERS:
-        case SiteState.FIRST_DEAL:
             return <Lobby message={message}
-                          pickColor={(color) => websocket.send(JSON.stringify({
+                          pickColor={(color) => send({
                               code: Commands.PICK_COLOR,
-                              text: "Kies kleur",   //TODO replace with option
+                              text: "Kies kleur",
                               color
-                          }))}
-                          deal={() => websocket.send(JSON.stringify({
+                          })}
+                          deal={() => send({
                               code: Commands.DEAL,
-                              text: "Deel",   //TODO replace with option
-                          }))}/>
+                              text: "Deel", 
+                          })}/>
+        case SiteState.SWAP_CARD:
+        case SiteState.SWAP_CARD_OTHERS:
+        case SiteState.PLAY_CARD:
+        case SiteState.PLAY_CARD_OTHER:
+            return <Game message={message}
+                         swapCard={(card) => send({
+                             code: Commands.SWAP_CARD,
+                             text: "Wissel kaart",
+                             card,
+                         })}
+                         playCard={(card) => send({
+                             code: Commands.PLAY_CARD,
+                             text: "Speel kaart",
+                             card,
+                         })}
+                         confirmPlay={() => send({
+                             code: Commands.READY,
+                             text: "Klaar/Bevestig kaart",
+                         })}
+                         undoPlay={() => send({
+                             code: Commands.UNDO_CARD,
+                             text: "Terug/Neem kaart terug",
+                         })}/>
+        case SiteState.DEAL:
+            return <div className="row justify-content-center flex-md-column my-2">
+                <h1>Klik om te delen</h1><br/>
+                <div className="btn btn-link" onClick={() => send({
+                    code: Commands.DEAL,
+                    text: "Delen",
+                })}>
+                    <img src={deck} alt="kaartenstapel"/><br/><span>Delen</span>
+                </div>
+            </div>;
+        case SiteState.DEAL_OTHER:
+            return <h1>Wachten tot {args.current_player.color}({args.current_player.name}) heeft gedeeld</h1>
+        default:
+            return `state: ${state}, wsstatus: ${websocketStatus}`
     }
-
-    return `state: ${state}, wsstatus: ${websocketStatus}`
 }

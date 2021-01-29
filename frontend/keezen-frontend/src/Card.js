@@ -1,13 +1,18 @@
 import React from 'react';
 
-export function CardComponent({value: {suit, denom}}, play) {
-    console.log({suit, denom})
-    return <div className={`playing-card card-${suit}`}>
+export function Card({value: {suit, denom}, play, animate, selected, select}) {
+    console.log({suit, denom, play})
+    return <div className={`playing-card card-${suit || Joker} ${animate ? "animate" : ""} ${selected ? "selected" : ""}`}
+                onClick={select || (() => {})}>
         <div className="card-top">
             <span className="card-denom">{denomToChar(denom)}</span>
             <span className="card-suit">{suitToIcon(suit)}</span>
         </div>
-        <button className="btn btn-success" onClick={play}><i className="fa fa-arrow-up"/></button>
+        {play && <button className="btn btn-success"  onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            play(event);
+        }}><i className="fa fa-arrow-up"/></button>}
     </div>;
 }
 
@@ -40,38 +45,26 @@ function denomToChar(denom) {
             return "V"
         case Denoms.JACK:
             return "J"
+        case Joker:
+            return "Joker"
         default:
             return denom
     }
 }
-
-export function fromString(s) {
-    s = s.toLowerCase()
-    if (s.toLowerCase() === Joker) {
-        return {denom: "Joker", suit: null}
-    }
-    const split = s.split(" ")
-    if (split.length !== 2) {
-        console.error("Unknown card", s)
-        return null
-    }
-    return {suit: split[0], denom: split[1]}
-}
-
 export const Joker = "joker"
 
 export const Suits = {
-    HEARTS: "harten",
-    DIAMONDS: "ruiten",
-    CLUBS: "klaver",
-    SPADES: "schoppen"
+    HEARTS: "hearts",
+    DIAMONDS: "diamonds",
+    CLUBS: "clubs",
+    SPADES: "spades"
 }
 
 export const Denoms = {
-    ACE: "aas",
-    KING: "koning",
-    QUEEN: "vrouw",
-    JACK: "boer",
+    ACE: "ace",
+    KING: "king",
+    QUEEN: "queen",
+    JACK: "jack",
     D10: "10",
     D9: "9",
     D8: "8",

@@ -146,7 +146,7 @@ class Game(object):
         for other in self.players:
             if other.color != player.color:
                 other.message = f"{player.name} speelt een {card.denom}"
-                other.state = StateCode.PLAY_CARD_OTHER,
+                other.state = StateCode.PLAY_CARD_OTHER
                 other.play_card = card
 
 
@@ -228,9 +228,11 @@ class Game(object):
         
         for player in self.players:
             player.set_current(dealer)
+            player.play_card = None
             if player.color != dealer.color:
                 player.message = f"{dealer.name} is aan de beurt om te delen"
-                player.state= StateCode.DEAL_OTHER 
+                player.state = StateCode.DEAL_OTHER
+                
 
 
     def turn(self):
@@ -239,13 +241,13 @@ class Game(object):
         player.options.append(Option(OptionCode.PASS, "Pas"))
         player.message = "Kies een kaart om te spelen"
         player.state = StateCode.PLAY_CARD
-        player.play_card = None
 
         for player in self.players:
             player.set_current(self.current_player)
+            player.play_card = None
             if player.color != self.current_player.color:
                 player.message = f"{self.current_player.name} is aan de beurt"
-                player.state = StateCode.PLAY_CARD_OTHER 
+                player.state = StateCode.PLAY_CARD_OTHER
 
 
     def partner(self, player):

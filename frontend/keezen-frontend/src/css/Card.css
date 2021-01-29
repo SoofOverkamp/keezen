@@ -2,48 +2,58 @@
     display: flex;
     position: fixed;
     bottom: 0;
+    height: 160px;
 }
 
 .playing-card {
-    width: 165px;
-    height: 160px;
-    border-top: solid 2px;
-    border-left: solid 2px;
-    border-right: solid 2px;
-    border-color: lightgray;
-    border-top-left-radius: 15px;
-    border-top-right-radius: 15px;
+    width: 170px;
+    height: 240px;
+    border: 2px solid lightgray;
+    border-radius: 15px;
+
+    background-color: white;
 
     display: flex;
     flex-flow: row wrap;
     justify-content: center;
+    align-content: flex-start;
 
     padding: 20px;
-    margin: 70px 20px -70px;
+    margin: 70px 0 -150px;
     transition: margin-top 500ms ease;
 }
 
-.playing-card:hover {
+.playing-card.animate:hover,
+.playing-card.selected {
     margin-top: 0;
     transition: margin-top 500ms ease;
 }
 
+.playing-card.selected {
+    background-color: lightgray;
+    border-color: gray;
+}
+
 .playing-card .card-denom {
     font-size: 36pt;
-    margin-right: 50px;
-    width: 35px;
+    margin-right: 35px;
+    width: 55px;
+}
+
+.playing-card.card-joker .card-denom {
+    margin-right: 0;
 }
 
 .playing-card .card-suit {
     font-size: 27pt;
 }
 
-.playing-card.card-ruiten,.playing-card.card-harten
+.playing-card.card-diamonds,.playing-card.card-hearts
 {
     color: red;
 }
 
-.playing-card.card-schoppen,.playing-card.card-klaver
+.playing-card.card-spades,.playing-card.card-clubs
 {
     color: black;
 }

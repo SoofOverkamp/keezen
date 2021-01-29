@@ -53,6 +53,7 @@ class Player(object):
 
     color: Color
     name: str
+    game_code: int
     hand: List[Card]
     options: List[Option]
     message: str
@@ -68,6 +69,7 @@ class Player(object):
     def __init__(self, color = None, name = None):
         self.color = color
         self.name = name
+        self.game_code = None
         self.hand = []
         self.options = []
         self.message = "Even wachten"
@@ -100,7 +102,6 @@ class Player(object):
 
     def set_current(self, current_player):
         self.current_player = OtherPlayer(current_player.color, current_player.name)
-        self.play_card = current_player.play_card
 
     def merge_from(self, other):
         self.color = other.color
