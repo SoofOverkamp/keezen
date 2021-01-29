@@ -138,7 +138,7 @@ class Game(object):
         
         player.hand.remove(card)
         player.play_card = card
-        player.options = [Option(OptionCode.UNDO_CARD, "Terug"), Option(OptionCode.READY, "Klaar")]
+        player.options = [Option(OptionCode.UNDO_CARD, "Terug"), Option(OptionCode.READY, "Klaar"), Option(OptionCode.SKIP_TURN, "Pas")]
         player.options.extend(Option(OptionCode.PLAY_CARD, card.denom, card=card) for card in self.current_player.hand)
         player.message = f"Je speelt {card.denom}"
         player.state = StateCode.PLAY_CARD
@@ -190,7 +190,7 @@ class Game(object):
             return self.ready(player)
         elif option.code == OptionCode.UNDO_CARD:
             return self.undo_card(player)
-        elif option.code == OptionCode.PASS:
+        elif option.code == OptionCode.SKIP_TURN:
             return self.drop_cards(player)
         else:
             raise Exception(f"Unknown option {option.code}")
@@ -238,7 +238,7 @@ class Game(object):
     def turn(self):
         player = self.current_player
         player.options = [Option(OptionCode.PLAY_CARD, card.denom, card=card) for card in player.hand]
-        player.options.append(Option(OptionCode.PASS, "Pas"))
+        player.options.append(Option(OptionCode.SKIP_TURN, "Pas"))
         player.message = "Kies een kaart om te spelen"
         player.state = StateCode.PLAY_CARD
 

@@ -33,7 +33,7 @@ export const Commands = {
     PLAY_CARD: "play_card",
     READY: "ready",
     UNDO_CARD: "undo_card",
-    PASS: "pass",
+    SKIP_TURN: "skip_turn",
 }
 
 export default function StateRouter() {
@@ -155,7 +155,11 @@ export default function StateRouter() {
                          undoPlay={() => send({
                              code: Commands.UNDO_CARD,
                              text: "Terug/Neem kaart terug",
-                         })}/>
+                         })}
+                         skipTurn={() => send({
+                            code: Commands.SKIP_TURN,
+                            text: "Pas",
+                        })}/>
         case SiteState.DEAL:
             return <div className="row justify-content-center flex-md-column my-2">
                 <h1>Klik om te delen</h1><br/>
