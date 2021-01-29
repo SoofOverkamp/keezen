@@ -101,7 +101,10 @@ async def handler(websocket, path):
             player.set_error(None)
 
             if option.code == OptionCode.NEW_GAME:
-                game_code = 3936  # random.randint(1000, 9999);
+                game_code = random.randint(1000, 9999);
+                while game_code in games:
+                    game_code = random.randint(1000, 9999)
+
                 game = Game()
                 games[game_code] = game
                 if option.user_name is None:
@@ -141,9 +144,15 @@ async def handler(websocket, path):
             if game is not None:
                 game.unjoin_player(player)
 
-            if game_code > 0:
+            if game_code > 0 and game_code in sockets:
                 sockets[game_code].remove((player, websocket))
-                await notify(sockets[game_code])
+                if len(sockets[game_code]) > 0:
+                    await notify(sockets[game_code])
+                else:
+                    del sockets[game_code]
+                    if game_code in games:
+                        del games[game_code]
+
 
 
 if __name__ == "__main__":
