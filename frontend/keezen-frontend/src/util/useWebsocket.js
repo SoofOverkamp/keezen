@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect } from 'react';
 
 export const WebsocketStatus = {
     CONNECTING: "CONNECTING",
@@ -9,9 +9,13 @@ export const WebsocketStatus = {
     DISCONNECTED: "DISCONNECTED",
 }
 
+const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+
 const RETRY_TIMEOUT = 1000;
-const ADDRESS = "127.0.0.1";
-const PORT = 6789;
+const ADDRESS = window.location.hostname;
+const PORT = IS_PRODUCTION ? 443 : 6789;
+const PROTOCOL = IS_PRODUCTION ? "wss" : "ws";
+const PATH = IS_PRODUCTION ? "/websocket" : "/";
 
 export default function useWebsocket() {
     const [status, setStatus] = useState(WebsocketStatus.DISCONNECTED);
@@ -25,7 +29,7 @@ export default function useWebsocket() {
             return
         }
 
-        const ws = new WebSocket(`ws://${ADDRESS}:${PORT}`);
+        const ws = new WebSocket(`${PROTOCOL}://${ADDRESS}:${PORT}${PATH}`);
         ws_ref.current = ws;
         setStatus(WebsocketStatus.CONNECTING);
 
