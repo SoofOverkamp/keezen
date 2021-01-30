@@ -120,8 +120,8 @@ export default function StateRouter() {
                                 })}
                                 joinGame={(code) => send({
                                     code: Commands.JOIN_GAME,
-                                    game_code: 3936,
-                                    text: "Neem deel aan spel 3936",
+                                    game_code: code,
+                                    text: `Neem deel aan spel ${code}`,
                                 })}/>
         case SiteState.PICK_COLOR:
             return <Lobby message={message}
