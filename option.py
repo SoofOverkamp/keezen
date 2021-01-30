@@ -13,7 +13,7 @@ class OptionCode(str, Enum):
     PLAY_CARD = "play_card"
     READY = "ready"
     UNDO_CARD = "undo_card"
-    PASS = "pass"
+    SKIP_TURN = "skip_turn"
 
 
 class Option(object):
