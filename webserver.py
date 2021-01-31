@@ -79,9 +79,10 @@ async def notify(player_sockets):
     if player_sockets:
         await asyncio.wait([websocket.send(json.dumps(player, cls=DogEncoder)) for (player, websocket) in player_sockets])
 
-async def handler(websocket, path):
-    player = Player(name=users[0])
-    player.options = [
+async def notify_error(websocket, error_code, message, **kwargs):
+    reply = Player()
+    reply.message = message
+    reply.set_error(error_code, **kwargs)
     reply.state = StateCode.START
     reply.options = [
         Option(OptionCode.NEW_GAME, "Nieuw spel"), 
