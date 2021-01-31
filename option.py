@@ -8,6 +8,7 @@ class OptionCode(str, Enum):
     NEW_GAME = "new_game"
     JOIN_GAME = "join_game"
     PICK_COLOR = "pick_color"
+    CHANGE_NAME = "change_name"
     DEAL = "deal"
     SWAP_CARD = "swap_card"
     PLAY_CARD = "play_card"
