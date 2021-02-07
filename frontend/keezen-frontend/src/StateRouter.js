@@ -48,7 +48,7 @@ export default function StateRouter() {
 
     console.log({path, path_code});
     const initial_state = path_code === null ?
-        { state: SiteState.WAITING_FOR_WS } :
+        { state: SiteState.START } :
         { state: SiteState.JOIN_LINK, game_code: path_code };
 
     const send = websocketStatus === WebsocketStatus.CONNECTED ?

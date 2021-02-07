@@ -26,9 +26,10 @@ class Game(object):
 
     def join_player(self, name, color=None):
         if color is not None:
-            color_player = next((p for p in self.players if p.color == color and p.Name is None), None)
+            color_player = next((p for p in self.players if p.color == color and not p.connected), None)
             if color_player is not None:
                 color_player.name = name
+                color_player.connected = True
                 return color_player
 
         player = Player(None, name)
@@ -47,13 +48,15 @@ class Game(object):
             self.players.remove(player)
         else:
             player.name = None
+            player.connected = False
 
         self.set_pick_color_state()
 
-    def pick_color(self, player, color):
+    def pick_color(self, player, color, name):
+        player.name = name or player.name
         color_player = next((p for p in self.players if p.color == color), None)
-        if color_player is not None:
-            if color_player.name is None:
+        if color_player != player and color_player is not None:
+            if not color_player.connected:
                 # reconnect, merge
                 player.merge_from(color_player)
                 self.players.remove(color_player)
@@ -68,7 +71,7 @@ class Game(object):
 
 
     def set_pick_color_state(self):
-        used_colors = [player.color for player in self.players if player.color is not None and player.name is not None]
+        used_colors = [player.color for player in self.players if player.color is not None and player.connected]
         available_colors = [color for color in all_colors if color not in used_colors]
 
         for player in self.players:
@@ -190,7 +193,7 @@ class Game(object):
 
     def play_option(self, player, option):
         if option.code == OptionCode.PICK_COLOR:
-            return self.pick_color(player, option.color)
+            return self.pick_color(player, option.color, option.user_name)
         elif option.code == OptionCode.DEAL:
             return self.deal(player)
         elif option.code == OptionCode.SWAP_CARD:

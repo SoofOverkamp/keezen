@@ -3,7 +3,7 @@
     <head>
         <title>Dog</title>
         <style type="text/css">
-            body {
+            body, .input {
                 font-family: "Courier New", sans-serif;
                 text-align: center;
                 background-color: lightgray;
@@ -23,17 +23,24 @@
                 cursor: pointer;
                 user-select: none;
             }
-            .state, .name {
-                font-size: 1em;
-                padding: 1rem;
+            .state, .input {
+                font-size: 2em;
+                padding: 2rem;
             }
-            .name {
+            .input {
                 color: white;
-             }
+                line-height: 1;
+                padding: 1rem;
+                margin: 1rem;
+                border: thin solid;
+                min-height: 1em;
+                min-width: 1em;
+            }
         </style>
     </head>
     <body>
-        <div class="name" id="name">You</div>
+        <div><input type="number" class="input" id="gc" placeholder="1234" onchange="changeGameCode(this.value)"/></div>
+        <div><input type="text" class="input" id="name" placeholder="Jouw Naam" onchange="changeName(this.value)" /></div>
         <div class="state">
             <span class="message" id="msg">?</span>
         </div>
@@ -46,45 +53,69 @@
             <div class="button" id="b5" onclick="doOption(5)">6</div>
             <div class="button" id="b6" onclick="doOption(6)">7</div>
         </div>
+        <div id="json"/>
+
         <script>
-            var player = { options: [
-              {
-                code: 'newgame',
-                args: null,
-                text: 'Nieuw spel'
-                }, {
-                code: 'joingame',
-                args: { code: 3936 },
-                text: 'Doe mee met een spel'
-              }],
-              message: "Even wachten op de server"};
+            var player = {
+                options: [
+                    {
+                        code: 'new_game',
+                        text: 'Nieuw spel'
+                    }, {
+                        code: 'join_game',
+                        text: 'Doe mee met een spel'
+                    }],
+                message: "Even wachten op de server",
+                state: "start"
+            };
+            var json = "";
 
             function doOption(i) {
-              if (player.options.length > i) {
-                websocket.send(JSON.stringify(player.options[i]));
-              }
+                if (player.options.length > i) {
+                    const option = player.options[i];
+                    option.user_name = player.name;
+                    option.game_code = player.game_code;
+                    option.color = option.color || player.color;
+                    websocket.send(JSON.stringify(player.options[i]));
+                }
             }
 
             function show() {
-              var i;
-              for (i = 0; i < 7; i++) {
-                document.getElementById("b" + i.toString()).textContent = player.options.length > i ? player.options[i].text : '';
-              }
-              document.getElementById("msg").textContent = player.message;
-              var name = document.getElementById("name");
-              name.textContent = player.name ?? 'You';
-              if (player.color) {
-                name.style.color = player.color; 
-              }
+                var i;
+                for (i = 0; i < 7; i++) {
+                    document.getElementById("b" + i.toString()).textContent = player.options.length > i ? player.options[i].text : '';
+                }
+                document.getElementById("msg").textContent = player.message;
+                var name = document.getElementById("name");
+                if (player.color) {
+                    name.style.color = player.color;
+                }
+                const gc = document.getElementById("gc");
+                gc.value = player.game_code;
+                gc.disabled = player.state !== "start";
+                document.getElementById("json").textContent = json;
             }
-            
+
+            function changeName(name) {
+                player.name = name;
+                if (player.game_code) {
+                    const option = { code: "change_name", text: name, user_name: name }
+                    websocket.send(JSON.stringify(option));
+                }
+            }
+
+            function changeGameCode(code) {
+                player.game_code = code;
+            }
+
             websocket = new WebSocket("ws://127.0.0.1:6789/");
 
             websocket.onmessage = function (event) {
                 player = JSON.parse(event.data);
+                json = event.data;
                 show();
             }
-            
+
             show();
         </script>
     </body>

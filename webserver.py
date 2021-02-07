@@ -79,26 +79,24 @@ async def notify(player_sockets):
     if player_sockets:
         await asyncio.wait([websocket.send(json.dumps(player, cls=DogEncoder)) for (player, websocket) in player_sockets])
 
-async def handler(websocket, path):
-    player = Player(name=users[0])
-    player.options = [
+async def notify_error(websocket, error_code, message, **kwargs):
+    reply = Player()
+    reply.message = message
+    reply.set_error(error_code, **kwargs)
+    reply.state = StateCode.START
+    reply.options = [
         Option(OptionCode.NEW_GAME, "Nieuw spel"), 
-        Option(OptionCode.JOIN_GAME, "Doe mee met een spel", game_code='3936')]
-    player.message = "Wat wil je doen?"
-    player.state = StateCode.START
+        Option(OptionCode.JOIN_GAME, "Doe mee met een spel")]
+    await notify([(reply, websocket)])
+
+
+async def handler(websocket, path):
+    player = None
     game_code = 0
     game = None
     try:
-        await notify([(player, websocket)])
-
         async for message in websocket:
             option = Option(**json.loads(message))
-
-            if not player.check_option(option):
-                await notify([(player, websocket)])
-                continue
-
-            player.set_error(None)
 
             if option.code == OptionCode.NEW_GAME:
                 game_code = random.randint(1000, 9999);
@@ -107,10 +105,6 @@ async def handler(websocket, path):
 
                 game = Game()
                 games[game_code] = game
-                if option.user_name is None:
-                    option.user_name = users[0]
-                    users.append(users[0])
-                    users.remove(users[0])
                 player = game.join_player(option.user_name)
                 player.game_code = game_code
                 sockets[game_code] = [(player, websocket)]
@@ -121,22 +115,32 @@ async def handler(websocket, path):
                 game = games.get(game_code) if game_code is not None and type(game_code) is int and game_code > 0 else None
 
                 if game is None:
-                    player.message = f"onbekande code {game_code}"
-                    player.set_error(ErrorCode.UNKNOWN_CODE, game_code=game_code)
-                    await notify([(player, websocket)])
+                    await notify_error(websocket, ErrorCode.UNKNOWN_CODE, f"onbekende code {game_code}", game_code=game_code)
                     continue
 
-                if option.user_name is None:
-                    option.user_name = users[0]
-                    users.append(users[0])
-                    users.remove(users[0])
                 player = game.join_player(option.user_name, option.color)
                 player.game_code = game_code
                 sockets[game_code].append((player, websocket))
                 await notify(sockets[game_code])
 
+            elif game is None or player is None:
+                await notify_error(websocket, ErrorCode.NO_GAME, f"Start eerst een nieuw spel of doe mee met een spel")
+
+            elif option.code == OptionCode.CHANGE_NAME:
+                player.name = option.user_name
+                for p in game.players:
+                    p.set_others(game.players)
+
+                await notify(sockets[game_code])
+
             else:
                 game = games[game_code]
+                player.set_error(None)
+
+                if not player.check_option(option):
+                    await notify([(player, websocket)])
+                    continue
+
                 game.play_option(player, option)
                 await notify(sockets[game_code])
     finally:

@@ -19,6 +19,7 @@ class StateCode(str, Enum):
 
 
 class ErrorCode(str, Enum):
+    NO_GAME = "no_game"
     UNKNOWN_CODE = "unknown_code"
     COLOR_ALREADY_CHOSEN = "color_already_chosen"
     OPTION_NOT_ALLOWED = "option_not_allowed"
@@ -54,6 +55,7 @@ class Player(object):
     color: Color
     name: str
     game_code: int
+    connected: bool
     hand: List[Card]
     options: List[Option]
     message: str
@@ -70,6 +72,7 @@ class Player(object):
         self.color = color
         self.name = name
         self.game_code = None
+        self.connected = True
         self.hand = []
         self.options = []
         self.message = "Even wachten"
