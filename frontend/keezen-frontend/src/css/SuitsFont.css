@@ -21,4 +21,6 @@
 .icon-clubs:before{content:'\0043';}
 .icon-diamonds:before{content:'\0044';}
 .icon-hearts:before{content:'\0048';}
+.icon-pawn-filled:before{content:'\0050';}
 .icon-spades:before{content:'\0053';}
+.icon-pawn-outline:before{content:'\0070';}

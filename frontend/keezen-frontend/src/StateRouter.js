@@ -29,6 +29,7 @@ export const Commands = {
     NEW_GAME: "new_game",
     JOIN_GAME: "join_game",
     PICK_COLOR: "pick_color",
+    CHANGE_NAME: "change_name",
     DEAL: "deal",
     SWAP_CARD: "swap_card",
     PLAY_CARD: "play_card",
@@ -133,7 +134,12 @@ export default function StateRouter() {
                           deal={() => send({
                               code: Commands.DEAL,
                               text: "Deel", 
-                          })}/>
+                          })}
+            setName={(name) => send({
+                code: Commands.CHANGE_NAME,
+                text: "Verander naam",
+                user_name: name
+            })}/>
         case SiteState.SWAP_CARD:
         case SiteState.SWAP_CARD_OTHERS:
         case SiteState.PLAY_CARD:

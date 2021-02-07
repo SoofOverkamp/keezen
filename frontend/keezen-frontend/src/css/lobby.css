@@ -1,46 +1,58 @@
 .color-pick {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    border: #1d2124 2px solid;
-    opacity: 0.5;
-    font-family: "Font Awesome 5 Free";
-    font-weight: 900;
-    font-size: 19pt;
-    padding: 3px;
+    font-family: "Suits";
+    font-size: min(20vh, 70pt);
+    padding: min(4vh, 20px);
     margin:auto;
+    line-height: 1;
+    opacity: 0.5;
 }
 
-.color-pick.mine {
-    opacity: 1;
+.color-pick:before {
+    content: "p";
 }
 
-.color-pick.mine:before,
-.color-pick.selected:before {
-    content: "\f00c";
-}
-
+.color-pick.mine,
 .color-pick.selectable:hover {
     opacity: 1;
 }
 
+.color-pick.mine:before,
+.color-pick.selected:before,
 .color-pick.selectable:hover:before {
-    content: "\f00c";
+    content: "P";
 }
 
 .color-pick.red {
-    background: #ff1d1d;
+    color: #ff1d1d;
 }
 
 .color-pick.blue {
-    background: #2b46e5;
+    color: #2b46e5;
 }
 
 .color-pick.yellow {
-    background: #ffff00;
+    color: #ffff00;
 }
 
 
 .color-pick.green {
-    background: #0ce20a;
+    color: #0ce20a;
+}
+
+.color-pick-name {
+    font-size: min(5vh, 20pt);
+    text-align: center;
+    height: calc(1.5em + 0.75rem + 2px);
+}
+
+.color-pick-name input {
+    font-size: min(5vh, 20pt);
+    text-align: center;
+    border: none;
+    border-bottom: lightgray solid;
+    border-radius: 0;
+}
+
+.color-pick-name input:focus {
+    box-shadow: none;
 }
