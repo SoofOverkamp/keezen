@@ -3,6 +3,7 @@
     position: fixed;
     bottom: 0;
     height: 160px;
+    background-color: lightgray;
 }
 
 .playing-card {
@@ -29,9 +30,12 @@
     transition: margin-top 500ms ease;
 }
 
+.playing-card.dragging {
+    opacity: 0;
+}
+
 .playing-card.selected {
-    background-color: lightgray;
-    border-color: gray;
+    border: 3px solid darkgray;
 }
 
 .playing-card .card-denom {

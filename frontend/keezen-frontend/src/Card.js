@@ -1,9 +1,20 @@
 import React from 'react';
+import { useDrag } from 'react-dnd'
+
 
 export function Card({value: {suit, denom}, play, animate, selected, select}) {
     console.log({suit, denom, play})
-    return <div className={`playing-card card-${suit || Joker} ${animate ? "animate" : ""} ${selected ? "selected" : ""}`}
-                onClick={select || (() => {})}>
+
+    const [{isDragging}, drag] = useDrag({
+        item: { type: "card", card: {suit, denom} },
+        canDrag: () => !!play,
+        collect: monitor => ({
+          isDragging: !!monitor.isDragging(),
+        }),
+      })
+
+    return <div className={`playing-card card-${suit || Joker} ${animate ? "animate" : ""} ${selected && !isDragging ? "selected" : ""} ${isDragging ? "dragging" : ""}`}
+                onClick={select || (() => {})} ref={drag}>
         <div className="card-top">
             <span className="card-denom">{denomToChar(denom)}</span>
             <span className="card-suit">{suitToIcon(suit)}</span>

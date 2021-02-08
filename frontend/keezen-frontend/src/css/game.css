@@ -1,0 +1,24 @@
+.game {
+    background-color: lightgray;
+}
+
+.name {
+    height: 50px;
+    text-align: right;
+}
+
+.name.blue {
+    color: blue;
+}
+
+.name.green {
+    color: green;
+}
+
+.main {
+    background-image: url("../img/background_board.svg");
+    background-size: 85vw;
+    background-repeat: no-repeat;
+    background-position: center;
+
+}
