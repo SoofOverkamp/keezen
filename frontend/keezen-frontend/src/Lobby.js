@@ -32,11 +32,11 @@ export default function Lobby({ message, pickColor, deal, setName }) {
             <div className="container">
                 <div className="row justify-content-center my-2">
                     <Pawn color={Colors.RED} {...circle_args}/>
-                    <Pawn color={Colors.BLUE} {...circle_args}/>
+                    <Pawn color={Colors.GREEN} {...circle_args}/>
                 </div>
                 <div className="row justify-content-center my2">
+                    <Pawn color={Colors.BLUE} {...circle_args}/>
                     <Pawn color={Colors.YELLOW} {...circle_args}/>
-                    <Pawn color={Colors.GREEN} {...circle_args}/>
                 </div>
             </div>
         </div>
