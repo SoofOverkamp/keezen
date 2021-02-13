@@ -1,8 +1,7 @@
 .hand {
     display: flex;
-    position: fixed;
-    bottom: 0;
     height: 160px;
+    align-items: center;
 }
 
 .playing-card {

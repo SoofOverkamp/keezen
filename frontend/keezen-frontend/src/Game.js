@@ -37,20 +37,22 @@ export default function Game({ message, swapCard, playCard, confirmPlay, undoPla
 
 
     return <Fragment>
-        <h1>{text}</h1>
-        {card &&
-        <Card value={card}/>
-        }
-        {card && play_card && state === SiteState.PLAY_CARD &&
-        <button className="btn btn-success" onClick={confirmPlay}>Volgende speler</button>
-        }
-        {card && (state === SiteState.PLAY_CARD || state === SiteState.SWAP_CARD) &&
-        <button className="btn btn-secondary" onClick={undoPlay}>Neem terug</button>
-        }
-        <br/>
-        {state === SiteState.PLAY_CARD &&
-        <button className="btn btn-primary" onClick={skipTurn}>Pas</button>
-        }
+        <div className="top-bar">{text}</div>
+            <div className="container">
+                {card &&
+                <Card value={card}/>
+                }
+                {card && play_card && state === SiteState.PLAY_CARD &&
+                <button className="btn btn-success" onClick={confirmPlay}>Volgende speler</button>
+                }
+                {card && (state === SiteState.PLAY_CARD || state === SiteState.SWAP_CARD) &&
+                <button className="btn btn-secondary" onClick={undoPlay}>Neem terug</button>
+                }
+                <br/>
+                {state === SiteState.PLAY_CARD &&
+                <button className="btn btn-primary" onClick={skipTurn}>Pas</button>
+                }
+            </div>
         <Hand cards={hand} play={play}/>
     </Fragment>;
 }

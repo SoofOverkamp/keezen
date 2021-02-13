@@ -10,7 +10,7 @@ import Hand from "./Hand";
 import StateRouter from "./StateRouter";
 
 function App() {
-    return <div className="container App">
+    return <div className="App">
         <StateRouter/>
         {/*<Hand cards={[*/}
         {/*    { suit: Suits.DIAMONDS, denom: Denoms.ACE },*/}
