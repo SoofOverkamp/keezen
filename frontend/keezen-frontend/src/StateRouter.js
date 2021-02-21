@@ -47,7 +47,7 @@ export default function StateRouter() {
         null :
         parseInt(path.split("/")[1]);
 
-    console.log({path, path_code});
+    console.log({ path, path_code });
     const initial_state = path_code === null ?
         { state: SiteState.START } :
         { state: SiteState.JOIN_LINK, game_code: path_code };
@@ -133,17 +133,19 @@ export default function StateRouter() {
                           })}
                           deal={() => send({
                               code: Commands.DEAL,
-                              text: "Deel", 
+                              text: "Deel",
                           })}
-            setName={(name) => send({
-                code: Commands.CHANGE_NAME,
-                text: "Verander naam",
-                user_name: name
-            })}/>
+                          setName={(name) => send({
+                              code: Commands.CHANGE_NAME,
+                              text: "Verander naam",
+                              user_name: name
+                          })}/>
         case SiteState.SWAP_CARD:
         case SiteState.SWAP_CARD_OTHERS:
         case SiteState.PLAY_CARD:
         case SiteState.PLAY_CARD_OTHER:
+        case SiteState.DEAL:
+        case SiteState.DEAL_OTHER:
             return <Game message={message}
                          swapCard={(card) => send({
                              code: Commands.SWAP_CARD,
@@ -164,21 +166,18 @@ export default function StateRouter() {
                              text: "Terug/Neem kaart terug",
                          })}
                          skipTurn={() => send({
-                            code: Commands.SKIP_TURN,
-                            text: "Pas",
-                        })}/>
-        case SiteState.DEAL:
-            return <div className="row justify-content-center flex-md-column my-2">
-                <h1>Klik om te delen</h1><br/>
-                <div className="btn btn-link" onClick={() => send({
-                    code: Commands.DEAL,
-                    text: "Delen",
-                })}>
-                    <img src={deck} alt="kaartenstapel"/><br/><span>Delen</span>
-                </div>
-            </div>;
-        case SiteState.DEAL_OTHER:
-            return <h1>Wachten tot {colorToText(args.current_player.color)} heeft gedeeld</h1>
+                             code: Commands.SKIP_TURN,
+                             text: "Pas",
+                         })}
+                         deal={() => send({
+                             code: Commands.DEAL,
+                             text: "Delen",
+                         })}
+                         setName={(name) => send({
+                             code: Commands.CHANGE_NAME,
+                             text: "Verander naam",
+                             user_name: name
+                         })}/>
         default:
             return `state: ${state}, wsstatus: ${websocketStatus}`
     }

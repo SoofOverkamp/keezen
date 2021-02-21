@@ -3,8 +3,10 @@ import random
 suits = ["hearts", "spades", "clubs", "diamonds"]
 denoms = ["ace", "king", "queen", "jack", "10", "9", "8", "7", "6", "5", "4", "3", "2"]
 
+
 class Card(object):
-    def __init__(self, suit, denom):
+    def __init__(self, uid, suit, denom):
+        self.uid = uid
         self.suit = suit
         self.denom = denom
 
@@ -19,15 +21,14 @@ class Card(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
-def shuffle(numberOfDecks):
-    deck = [Card(x, y) for x in suits for y in denoms] + [Card(None, "joker") for _ in range(3)]
-    stock = deck * numberOfDecks
 
-    for n in range(len(stock)):
-        x = random.randint(0, len(stock) - n)
-        value = stock[x]
-        stock[x] = stock[n]
-        stock[n] = value
+def shuffle(number_of_decks):
+    deck = [(x, y) for x in suits for y in denoms] + [(None, "joker") for _ in range(3)]
+    stock = deck * number_of_decks
+
+    stock = zip(stock, range(len(stock)))
+    stock = [Card(uid, x, y) for ((x, y), uid) in stock]
+    random.shuffle(stock)
 
     return stock
 
