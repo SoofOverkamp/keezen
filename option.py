@@ -23,7 +23,7 @@ class Option(object):
         self.text = text
         self.game_code = int(game_code) if game_code != None else None
         self.color = Color(color) if color != None else None
-        self.card = card if isinstance(card, Card) else Card(card['suit'], card['denom']) if isinstance(card, dict) else None
+        self.card = card if isinstance(card, Card) else Card(card['uid'], card['suit'], card['denom']) if isinstance(card, dict) else None
         self.user_name = user_name
 
     def isOption(self, other):

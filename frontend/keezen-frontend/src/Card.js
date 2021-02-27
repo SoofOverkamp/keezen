@@ -1,7 +1,6 @@
 import React from 'react';
 
 export function Card({value: {suit, denom}, play, animate, selected, select}) {
-    console.log({suit, denom, play})
     return <div className={`playing-card card-${suit || Joker} ${animate ? "animate" : ""} ${selected ? "selected" : ""}`}
                 onClick={select || (() => {})}>
         <div className="card-top">

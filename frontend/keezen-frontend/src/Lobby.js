@@ -1,24 +1,15 @@
 import React, { Fragment, useRef } from "react";
-import "./css/lobby.css"
 import Colors from "./util/colors";
 import deck from './img/deck.svg';
 import { Commands } from "./StateRouter";
+import Pawn from "./Pawn";
+import { useDebounce } from "./util/useDebounce";
 
 export default function Lobby({ message, pickColor, deal, setName }) {
     const { color, options, state, game_code, others, name, ...args } = message;
     const pickableColors = options.filter((o) => o.code === Commands.PICK_COLOR).map((o) => o.color);
 
-    const timeoutCode = useRef(null);
-
-    const scheduleSetName = (name) => {
-        if (timeoutCode.current !== null) {
-            window.clearTimeout(timeoutCode.current);
-        }
-        timeoutCode.current = window.setTimeout(() => {
-            timeoutCode.current = null;
-            setName(name);
-        }, 500);
-    }
+    const scheduleSetName = useDebounce(setName, 500)
 
     const circle_args = { state, myColor: color, myName: name, setMyName: scheduleSetName, others, pickableColors, pickColor };
     const canDeal = options.find((o) => o.code === Commands.DEAL);
@@ -31,12 +22,12 @@ export default function Lobby({ message, pickColor, deal, setName }) {
         <div className="content">
             <div className="container">
                 <div className="row justify-content-center my-2">
-                    <Pawn color={Colors.RED} {...circle_args}/>
-                    <Pawn color={Colors.GREEN} {...circle_args}/>
+                    <PawnWrapper color={Colors.RED} {...circle_args}/>
+                    <PawnWrapper color={Colors.GREEN} {...circle_args}/>
                 </div>
                 <div className="row justify-content-center my2">
-                    <Pawn color={Colors.BLUE} {...circle_args}/>
-                    <Pawn color={Colors.YELLOW} {...circle_args}/>
+                    <PawnWrapper color={Colors.BLUE} {...circle_args}/>
+                    <PawnWrapper color={Colors.YELLOW} {...circle_args}/>
                 </div>
             </div>
         </div>
@@ -53,21 +44,16 @@ export default function Lobby({ message, pickColor, deal, setName }) {
     </Fragment>
 }
 
-function Pawn({ color, myColor, myName, setMyName, others, pickableColors, pickColor }) {
+function PawnWrapper({ color, myColor, myName, setMyName, others, pickableColors, pickColor }) {
     const isMine = color === myColor;
     const playerInfo = isMine ?
         { color, name: myName } :
         others.find((o) => o.color === color);
     const isSelectable = pickableColors.includes(color);
-    const isPicked = !isSelectable;
+    const isSelected = !isSelectable;
     const name = (playerInfo && playerInfo.name) || "\u00a0";
     return <div className="col col-lg-3 col-md-4">
-        <div className={`color-pick 
-                ${color} ${isPicked ? "selected" : ""} 
-                ${isSelectable ? "selectable" : ""} 
-                ${isMine ? "mine" : ""}`}
-             onClick={() => isSelectable && pickColor(color)}>
-        </div>
+        <Pawn onClick={pickColor} size="large" {...{color, isMine, isSelectable, isSelected}} />
         {isMine ?
             <form className="color-pick-name">
                 <input className="form-control"
@@ -79,6 +65,7 @@ function Pawn({ color, myColor, myName, setMyName, others, pickableColors, pickC
                            setMyName(e.target.value);
                        }}/>
             </form> :
-            <div className="color-pick-name">{name}</div>}
+            <div className="color-pick-name">{name}</div>
+        }
     </div>
 }

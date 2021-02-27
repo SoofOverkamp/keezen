@@ -1,0 +1,13 @@
+.status-name input {
+    font-size: min(2vh, 10pt);
+    text-align: center;
+    border: none;
+    border-bottom: transparent solid;
+    border-radius: 0;
+    margin-bottom: 5px;
+}
+
+.status-name input:focus {
+    box-shadow: none;
+    border-bottom: lightgray solid;
+}
