@@ -96,10 +96,15 @@ async def handler(websocket, path):
     game = None
     try:
         async for message in websocket:
-            option = Option(**json.loads(message))
+            try:
+                option = Option(**json.loads(message))
+            except:
+                await notify_error(websocket, ErrorCode.BAD_OPTION, f"Bad request: {message}")
+                print(f"Error: {message}")
+                continue
 
             if option.code == OptionCode.NEW_GAME:
-                game_code = random.randint(1000, 9999);
+                game_code = random.randint(1000, 9999)
                 while game_code in games:
                     game_code = random.randint(1000, 9999)
 

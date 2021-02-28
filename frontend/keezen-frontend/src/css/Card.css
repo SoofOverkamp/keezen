@@ -33,6 +33,10 @@
     border-color: gray;
 }
 
+.playing-card.dragging {
+    opacity: 0;
+}
+
 .playing-card .card-denom {
     font-size: 36pt;
     margin-right: 35px;

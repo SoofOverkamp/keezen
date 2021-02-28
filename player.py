@@ -23,6 +23,7 @@ class ErrorCode(str, Enum):
     UNKNOWN_CODE = "unknown_code"
     COLOR_ALREADY_CHOSEN = "color_already_chosen"
     OPTION_NOT_ALLOWED = "option_not_allowed"
+    BAD_OPTION = "bad_option"
 
 
 class PlayerState(object):
