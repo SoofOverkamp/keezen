@@ -1,4 +1,5 @@
-import React, { Fragment } from 'react';
+import React from 'react';
+import { useDrop } from 'react-dnd'
 import Hand from "./Hand";
 import { SiteState } from "./StateRouter";
 import { Card } from "./Card";
@@ -19,9 +20,11 @@ export default function Game({ message, swapCard, playCard, confirmPlay, undoPla
     let play = null;
     let card = null;
     let text;
+    let canDrag = false;
     switch (state) {
         case SiteState.SWAP_CARD:
             play = swapCard;
+            canDrag = true;
             if (swap_card) {
                 card = swap_card;
                 text = "Wacht op een kaart van je partner";
@@ -34,6 +37,7 @@ export default function Game({ message, swapCard, playCard, confirmPlay, undoPla
             break;
         case SiteState.PLAY_CARD:
             play = playCard;
+            canDrag = true;
             card = play_card;
             text = "Kies een kaart om te spelen";
             break;
@@ -49,8 +53,19 @@ export default function Game({ message, swapCard, playCard, confirmPlay, undoPla
             break;
     }
 
+    const [{}, dropPlay] = useDrop({
+        accept: "card",
+        canDrop: (item) => item && item.card && (!card || card.uid !== item.card.uid),
+        drop: (item) => play && item && item.card && play(item.card),
+    });
 
-    return <Fragment>
+    const [{}, dropUndo] = useDrop({
+        accept: "card",
+        canDrop: (item) => item && item.card && card && card.uid === item.card.uid,
+        drop: () => undoPlay && undoPlay(),
+    });
+
+    return <div ref={dropPlay}>
         <div className="top-bar">
             <div className="row">
                 <div className="col-2"/>
@@ -72,7 +87,7 @@ export default function Game({ message, swapCard, playCard, confirmPlay, undoPla
         </div>
         <div className="container">
             {card &&
-            <Card value={card}/>
+            <Card value={card} canDrag={canDrag}/>
             }
             {card && play_card && state === SiteState.PLAY_CARD &&
             <button className="btn btn-success" onClick={confirmPlay}>Volgende speler</button>
@@ -86,7 +101,9 @@ export default function Game({ message, swapCard, playCard, confirmPlay, undoPla
             }
         </div>
         {(state !== SiteState.DEAL && state !== SiteState.DEAL_OTHER) &&
-            <Hand cards={hand} play={play}/>
+            <div ref={dropUndo}>
+                <Hand cards={hand} play={play} canDrag={canDrag}/>
+            </div>
         }
         {state === SiteState.DEAL &&
             <div className="row justify-content-center flex-md-column my-2">
@@ -95,5 +112,5 @@ export default function Game({ message, swapCard, playCard, confirmPlay, undoPla
                 </div>
             </div>
         }
-    </Fragment>;
+    </div>;
 }

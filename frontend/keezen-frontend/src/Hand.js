@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card } from "./Card";
 
-export default function Hand({ cards, play }) {
+export default function Hand({ cards, play, canDrag }) {
     const [selected, setSelected] = useState(null);
 
     const deselectAndPlay = (c) => {
@@ -21,7 +21,8 @@ export default function Hand({ cards, play }) {
                           animate={play !== null}
                           play={() => deselectAndPlay(c)}
                           select={selected === c.uid ? () => setSelected(null) : () => setSelected(c.uid)}
-                          selected={selected === c.uid}/></div>)}
+                          selected={selected === c.uid}
+                          canDrag={canDrag}/></div>)}
             </div>
         </div>
     </div>
